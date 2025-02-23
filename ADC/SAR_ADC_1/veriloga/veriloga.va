@@ -1,0 +1,83 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module sar_adc (
+    input GND,   // Power
+    input VIN_p, VIN_n, // Differential Inputs
+    //input Vcm,          // common mode
+    input ACLK,        // ADC Clock
+    input RST,         // Reset
+    input FT,          // Fully/Truly Differential Mode Selector
+    output D0, D1, D2, D3, D4, D5, D6, D7 
+);
+
+    real AVDD = 1.8;
+    electrical GND, VIN_p, VIN_n;
+    electrical ACLK, RST, FT;
+    electrical D0, D1, D2, D3, D4, D5, D6, D7;
+
+    integer output_code;
+    integer b0, b1, b2, b3, b4, b5, b6, b7;
+    real v_diff, Vcm;
+
+    integer clk_counter = 0;   // Clock cycle counter
+    integer reset_counter = 0; // Reset tracking
+
+    analog begin
+        Vcm = 0.5 * (V(VIN_p) + V(VIN_n)); 
+
+        @(cross(V(ACLK) - 0.5 * AVDD, +1)) begin 
+   //reset condition
+            if (V(RST) == AVDD) begin
+                reset_counter = 0;
+                b7 = 0; b6 = 0; b5 = 0; b4 = 0;
+                b3 = 0; b2 = 0; b1 = 0; b0 = 0;
+            end else begin
+                reset_counter = reset_counter + 1;
+
+                //need 18 cycles after reset for valid data
+                if (reset_counter < 18) begin
+                    b7 = 0; b6 = 0; b5 = 0; b4 = 0;
+                    b3 = 0; b2 = 0; b1 = 0; b0 = 0;
+                end else begin
+                    //count 9 clock cycles before updating output
+                    clk_counter = (clk_counter + 1) % 9;
+
+                    if (clk_counter == 0) begin
+                        // fully vs truly
+                        if (V(FT) == 0) begin
+                            v_diff = V(VIN_p) - V(VIN_n); //fully?
+                        end else begin
+                            //truly?
+// if truly -> any range of input
+//fully -> vcm between two is vdd/2
+                        end
+
+                        output_code = floor((256 / 3.6) * v_diff + 128);
+
+                        
+                            b7 = ((output_code >> 7) & 1) ? AVDD : 0;
+                            b6 = ((output_code >> 6) & 1) ? AVDD : 0;
+                            b5 = ((output_code >> 5) & 1) ? AVDD : 0;
+                            b4 = ((output_code >> 4) & 1) ? AVDD : 0;
+                            b3 = ((output_code >> 3) & 1) ? AVDD : 0;
+                            b2 = ((output_code >> 2) & 1) ? AVDD : 0;
+                            b1 = ((output_code >> 1) & 1) ? AVDD : 0;
+                            b0 = (output_code & 1) ? AVDD : 0;
+                       
+                    end
+                end
+            end
+        end
+   @(timer(250p));
+        V(D7) <+ b7;
+        V(D6) <+ b6;
+        V(D5) <+ b5;
+        V(D4) <+ b4;
+        V(D3) <+ b3;
+        V(D2) <+ b2;
+        V(D1) <+ b1;
+        V(D0) <+ b0;
+
+    end
+endmodule

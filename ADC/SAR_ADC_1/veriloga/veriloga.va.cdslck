@@ -1,0 +1,16 @@
+#
+# Edit Lock-Stake file. CAUTION: Please do not change.
+#
+# Information about current Edit Lock Owner.
+#
+LockStakeVersion               1.1
+LoginName                      vi42
+HostName                       en-ec-rhel-ecelinux-11.coecis.cornell.edu
+ProcessIdentifier              2377013
+ProcessCreationTime_UTC        1740087078
+ProcessCreationTime_Readable   Thu Feb 20 16:31:18 2025 EST
+AppIdentifier                  /opt/cadence/IC231.007/tools.lnx86/dfII/bin/64bit/virtuoso
+OSType                         lnx86
+ReasonForPlacingEditLock       Text Edit
+FilePathUsedToEditLock         /home/vi42/SKY130_PDK/ADC/SAR_ADC_1/veriloga/veriloga.va
+TimeEditLocked                 Thu Feb 20 16:33:18 2025 EST
